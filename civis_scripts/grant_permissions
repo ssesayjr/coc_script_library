@@ -1,0 +1,8 @@
+## Grant permissions to a user on civis 
+GRANT SELECT 
+
+## Select the schema to grant permission 
+ON coc_turbovote.turbovote
+
+## specify the user of the user group 
+TO {user_name} 
