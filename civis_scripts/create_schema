@@ -1,1 +1,9 @@
-## Create a schema on Civis 
+## Create a schema on Civis; have to authorized specific user or user group to view schema 
+CREATE SCHEMA {schema_name} 
+
+## Create a table on Civis associated with the specific schema 
+CREATE TABLE {schema_name}.{table_name} (
+  column_name INT PRIMARY KEY INDENTITY
+  column_name INT NOT NULL 
+  column_name VARCHAR(200) 
+ );
