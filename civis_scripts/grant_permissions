@@ -1,5 +1,5 @@
 ## Grant permissions to a user on civis 
-GRANT SELECT 
+GRANT ALL 
 
 ## Select the schema to grant permission 
 ON coc_turbovote.turbovote
