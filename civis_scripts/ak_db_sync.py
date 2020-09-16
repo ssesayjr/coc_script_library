@@ -12,6 +12,8 @@ _handler.setFormatter(_formatter)
 logger.addHandler(_handler)
 logger.setLevel('INFO')
 
+TMC_CIVIS_DATABASE = 815
+TMC_CIVIS_DATABASE_NAME = 'TMC'
 
 def set_env_var(name, value, overwrite=False):
     """
