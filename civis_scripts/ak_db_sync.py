@@ -1,7 +1,8 @@
 # Civis Container Script: https://platform.civisanalytics.com/spa/#/scripts/containers/91271562
 import os
-from parsons import Redshift, DBSync, S3
+import logging
 import ast
+from parsons import Redshift, DBSync, S3
 
 # Define the default logging config for Canales scripts
 logger = logging.getLogger(__name__)
