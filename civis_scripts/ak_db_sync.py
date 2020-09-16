@@ -2,7 +2,7 @@
 import os
 import logging
 import ast
-from parsons import Redshift, DBSync, S3
+from parsons import Redshift, MySQL, Postgres, DBSync, S3
 
 # Define the default logging config for Canales scripts
 logger = logging.getLogger(__name__)
