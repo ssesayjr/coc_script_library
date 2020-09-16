@@ -12,6 +12,28 @@ _handler.setFormatter(_formatter)
 logger.addHandler(_handler)
 logger.setLevel('INFO')
 
+
+def set_env_var(name, value, overwrite=False):
+    """
+    Set an environment variable to a value.
+    `Args:`
+        name: str
+            Name of the env var
+        value: str
+            New value for the env var
+        overwrite: bool
+            Whether to set the env var even if it already exists
+    """
+    # Do nothing if we don't have a value
+    if not value:
+        return
+
+    # Do nothing if env var already exists
+    if os.environ.get(name) and not overwrite:
+        return
+
+    os.environ[name] = value
+
 def setup_environment(redshift_parameter="REDSHIFT", aws_parameter="AWS"):
     """
     Sets up environment variables needed for various common services used by our scripts.
