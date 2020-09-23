@@ -280,6 +280,21 @@ def main():
                                alter_table=True,
                                distkey=tbl['distkey'],
                                sortkey=tbl['sortkey'])
+        
+        elif tbl['type'] == 'append':
+
+            # Default to distinct check being True
+            distinct_check = tbl.get('distinct_check', 'true') == 'true'
+
+            dbsync.table_sync_incremental(source_table = tbl['source'],
+                               destination_table = tbl['destination'],
+                               primary_key=tbl.get('primary_key') or tbl['distkey'],
+                               distinct_check=distinct_check,
+                               temp_bucket_region=temp_bucket_region,
+                               alter_table=True,
+                               distkey=tbl['distkey'],
+                               sortkey=tbl['sortkey'])
+
         elif tbl['type'] == 'incremental':
 
             # Default to distinct check being True
@@ -295,7 +310,7 @@ def main():
                                distkey=tbl['distkey'],
                                sortkey=tbl['sortkey'])
         else:
-            raise ValueError("The only options for type are full_refresh and incremental!")
+            raise ValueError("The only options for type are full_refresh, incremental, and append!")
 
 
 if __name__ == '__main__':
