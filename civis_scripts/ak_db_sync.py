@@ -166,8 +166,12 @@ def table_sync_incremental_upsert(self, source_table, destination_table, primary
         raise ValueError(f'{primary_key} is not distinct in source table.')
 
     # Get the max source table and destination table primary key
-    source_max_updated = self.db.query(f"SELECT MAX({updated_col})::TIMESTAMP FROM {source_tbl}").first
-    dest_max_updated = self.db.query(f"SELECT MAX({updated_col})::TIMESTAMP FROM {destination_tbl}").first
+    source_max_updated = self.source_db.query(
+        f"SELECT MAX({updated_col})::TIMESTAMP FROM {source_tbl}"
+    ).first
+    dest_max_updated = self.dest_db.query(
+        f"SELECT MAX({updated_col})::TIMESTAMP FROM {destination_tbl}"
+    ).first
 
     # Check for a mismatch in row counts; if dest_max_pk is None, or destination is empty
     # and we don't have to worry about this check.
