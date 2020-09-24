@@ -167,7 +167,12 @@ def table_sync_incremental_upsert(self, source_table, destination_table, primary
 
     # Get the max source table and destination table primary key
     dest_max_updated = destination_tbl.max_primary_key(updated_col)
-    source_max_updated = source_tbl.max_primary_key(updated_col)
+    dest_max_updated = self.dest_db.query(
+        f"SELECT CAST(MAX({updated_col}) AS DATETIME) FROM {destination_table}"
+    ).first
+    source_max_updated = self.source_db.query(
+        f"SELECT CAST(MAX({updated_col}) AS DATETIME) FROM {source_table}"
+    ).first
 
     # Check for a mismatch in row counts; if dest_max_pk is None, or destination is empty
     # and we don't have to worry about this check.
