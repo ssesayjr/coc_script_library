@@ -2,6 +2,7 @@
 import os
 import logging
 import ast
+import time
 from parsons import Redshift, MySQL, Postgres, DBSync, S3
 
 # Define the default logging config for Canales scripts
@@ -205,9 +206,17 @@ def table_sync_incremental_upsert(self, source_table, destination_table, primary
                 if c.upper() in RESERVED_WORDS:
                     rows.rename_column(c, f"{c}_col")
 
-            # Copy the chunk
-            self.dest_db.upsert(rows, destination_table, primary_key, **kwargs)
-
+            # Try a normal upsert, but if it fails, try witohut vacuuming
+            try:
+                # Copy the chunk
+                self.dest_db.upsert(rows, destination_table, primary_key, **kwargs)
+            except (Exception, psycopg2.DatabaseError) as error:
+                if 'VACUUM is running' in str(error):
+                    kwargs['vacuum'] = False
+                    self.dest_db.upsert(rows, destination_table, primary_key, **kwargs)
+                else:
+                    raise error
+                    
             # Update the counter
             copied_rows += row_count
 
