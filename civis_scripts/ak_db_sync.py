@@ -3,6 +3,7 @@ import os
 import logging
 import ast
 import time
+import psycopg2
 from parsons import Redshift, MySQL, Postgres, DBSync, S3
 
 # Define the default logging config for Canales scripts
