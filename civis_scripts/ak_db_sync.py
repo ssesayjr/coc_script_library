@@ -170,8 +170,8 @@ def table_sync_incremental_upsert(self, source_table, destination_table, primary
 
     # Check for a mismatch in row counts; if dest_max_pk is None, or destination is empty
     # and we don't have to worry about this check.
-    if dest_max_updated is not None and dest_max_updated > source_max_updated:
-        raise ValueError('Destination DB table updated later than source DB table.')
+    # if dest_max_updated is not None and dest_max_updated > source_max_updated:
+    #     raise ValueError('Destination DB table updated later than source DB table.')
 
     # Do not copied if row counts are equal.
     elif dest_max_updated == source_max_updated:
