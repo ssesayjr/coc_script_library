@@ -166,7 +166,7 @@ def table_sync_incremental_upsert(self, source_table, destination_table, primary
         raise ValueError(f'{primary_key} is not distinct in source table.')
 
     # Get the max source table and destination table primary key
-    casting = f"CAST({updated_col}, DATETIME)"
+    casting = f"CAST({updated_col} AS DATETIME)"
     source_max_updated = self.source_db.query(
         f"SELECT MAX({casting}) FROM {source_tbl}"
     ).first
