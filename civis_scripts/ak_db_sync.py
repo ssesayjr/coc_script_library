@@ -287,48 +287,53 @@ def main():
         dbsync = DBSync(rs, destination_db)
 
     for tbl in table_config:
-        logger.info(f"Running {tbl['type']} on {tbl['source']} to {tbl['destination']}...")
 
-        if tbl['type'] == 'full_refresh':
+        if destination_db.table_exists(tbl['source']):
+            logger.info(f"Running {tbl['type']} on {tbl['source']} to {tbl['destination']}...")
 
-            dbsync.table_sync_full(source_table = tbl['source'],
-                               destination_table = tbl['destination'],
-                               if_exists=tbl['if_exists'],
-                               temp_bucket_region=temp_bucket_region,
-                               alter_table=True,
-                               distkey=tbl['distkey'],
-                               sortkey=tbl['sortkey'])
-        
-        elif tbl['type'] == 'append':
+            if tbl['type'] == 'full_refresh':
 
-            # Default to distinct check being True
-            distinct_check = tbl.get('distinct_check', 'true') == 'true'
+                dbsync.table_sync_full(source_table = tbl['source'],
+                                   destination_table = tbl['destination'],
+                                   if_exists=tbl['if_exists'],
+                                   temp_bucket_region=temp_bucket_region,
+                                   alter_table=True,
+                                   distkey=tbl['distkey'],
+                                   sortkey=tbl['sortkey'])
+            
+            elif tbl['type'] == 'append':
 
-            dbsync.table_sync_incremental(source_table = tbl['source'],
-                               destination_table = tbl['destination'],
-                               primary_key=tbl.get('primary_key') or tbl['distkey'],
-                               distinct_check=distinct_check,
-                               temp_bucket_region=temp_bucket_region,
-                               alter_table=True,
-                               distkey=tbl['distkey'],
-                               sortkey=tbl['sortkey'])
+                # Default to distinct check being True
+                distinct_check = tbl.get('distinct_check', 'true') == 'true'
 
-        elif tbl['type'] == 'incremental':
+                dbsync.table_sync_incremental(source_table = tbl['source'],
+                                   destination_table = tbl['destination'],
+                                   primary_key=tbl.get('primary_key') or tbl['distkey'],
+                                   distinct_check=distinct_check,
+                                   temp_bucket_region=temp_bucket_region,
+                                   alter_table=True,
+                                   distkey=tbl['distkey'],
+                                   sortkey=tbl['sortkey'])
 
-            # Default to distinct check being True
-            distinct_check = tbl.get('distinct_check', 'true') == 'true'
+            elif tbl['type'] == 'incremental':
 
-            dbsync.table_sync_incremental_upsert(source_table = tbl['source'],
-                               destination_table = tbl['destination'],
-                               primary_key=tbl.get('primary_key') or tbl['distkey'],
-                               updated_col=tbl['sortkey'],
-                               distinct_check=distinct_check,
-                               temp_bucket_region=temp_bucket_region,
-                               alter_table=True,
-                               distkey=tbl['distkey'],
-                               sortkey=tbl['sortkey'])
+                # Default to distinct check being True
+                distinct_check = tbl.get('distinct_check', 'true') == 'true'
+
+                dbsync.table_sync_incremental_upsert(source_table = tbl['source'],
+                                   destination_table = tbl['destination'],
+                                   primary_key=tbl.get('primary_key') or tbl['distkey'],
+                                   updated_col=tbl['sortkey'],
+                                   distinct_check=distinct_check,
+                                   temp_bucket_region=temp_bucket_region,
+                                   alter_table=True,
+                                   distkey=tbl['distkey'],
+                                   sortkey=tbl['sortkey'])
+            else:
+                raise ValueError("The only options for type are full_refresh, incremental, and append!")
+
         else:
-            raise ValueError("The only options for type are full_refresh, incremental, and append!")
+            logger.info(f"{tbl['source']} doesn't exist in source DB")
 
 
 if __name__ == '__main__':
