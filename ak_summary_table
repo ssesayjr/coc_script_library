@@ -1,0 +1,155 @@
+-- drop ak_summary_table if already exists 
+DROP TABLE IF EXISTS coc_summary_tables.ak_summary_table;
+
+-- creating an actionkit summary table 
+CREATE TABLE coc_summary_tables.ak_summary_table AS 
+
+--WITH cte_emails_sent (emails_sent) AS (
+  --SELECT
+    --SUM(expected_send_count) emails_sent
+   --FROM
+    --coc_ak.core_mailing
+   --WHERE created_at BETWEEN '2020-01-01' AND '2020-12-31'
+
+  --), open_rate_cte AS (
+  
+    --SELECT  
+    	--COUNT( DISTINCT o.id)::float / SUM ( DISTINCT expected_send_count)::float open_rate
+    
+    --FROM coc_ak.core_mailing m, 
+    		 --coc_ak.core_open o
+    --WHERE  m.id = o.mailing_id
+    
+ --)
+
+
+SELECT
+	DATE_TRUNC ('week',ord.created_at) fundraiser_week
+
+-- individual user information 
+	, users.id user_id
+  , users.email email_address
+  , users.city donor_city
+  , users.state donor_state
+  , longitude 
+  , latitude 
+  
+-- highlights if the user opened an email sent from a specific mailing id 
+	, CASE 
+  		WHEN users.id = ord.user_id THEN  1
+      ELSE 0
+    END AS email_open
+    
+-- highlights if a mailing id resulted in a donation from a user 
+  , CASE 
+  		WHEN trans.amount > 0 THEN  1
+      ELSE 0
+    END AS email_produce_donation 
+    
+-- determines if the individual is a first time donor within the past 30 days    
+   , CASE 
+  		WHEN users.created_at >= GETDATE() -30 THEN  1
+      ELSE 0
+    END AS first_time_donor
+    
+ -- determine if the user id is a recurring donor 
+   , CASE 
+  		WHEN recur.status = 'active' AND recur.account = 'Default ActBlue' THEN  1
+      ELSE 0
+    END AS recurring_donor 
+ 
+-- calculates the total sum for recurring donor transaction 
+   , CASE 
+  		WHEN recur.status = 'active' AND recur.account = 'Default ActBlue' THEN  ROUND (SUM (recur.amount)) 
+      ELSE 0
+    END AS recurring_donor_amount 
+
+-- weekly mailing  information 
+	, mails.id mailing_id
+  , subject.text subject_line
+
+-- campaigner information 
+  , campaign.first_name campaigner_first_name
+  , campaign.last_name campaigner_last_name
+  , campaign.team team
+
+-- aggregated weekly information 
+	, SUM (trans.amount) fundraiser_sum
+	, COUNT (ord.user_id) number_of_donators
+  , expected_send_count emails_sent
+	, AVG (trans.amount) average_donation 
+	, MAX (trans.amount) highest_donation 
+	, MIN (trans.amount) minimumn_donation
+	, 100 * (COUNT(ord.user_id) - LAG(COUNT(ord.user_id),1) OVER (ORDER BY fundraiser_week)) / 
+		LAG (COUNT(ord.user_id),1) OVER (ORDER BY fundraiser_week) donator_growth
+ -- , fundraiser_sum / (SELECT  emails_sent FROM cte_emails_sent) dollar_per_email
+  , COUNT (DISTINCT opene.id)::float / SUM (DISTINCT expected_send_count)::float open_rate
+    
+  
+FROM 
+	coc_ak.core_user users 
+
+LEFT JOIN 
+	(SELECT longitude, latitude, user_id 
+   FROM coc_ak.core_location) location on location.user_id = users.id 
+
+-- this join pulls in the actions completed by user, page id viewed and mailing id recieved 
+LEFT JOIN  
+	(SELECT id, page_id, user_id, mailing_id
+   FROM coc_ak.core_action) actions ON users.id = actions.user_id
+
+-- this join pulls in the expected send count for a mailing 
+LEFT JOIN 
+	(SELECT id, expected_send_count   
+   FROM coc_ak.core_mailing) mails ON mails.id = actions.mailing_id 
+
+-- this join pulls in the campaigners list and associated team 
+LEFT JOIN
+	(SELECT first_name,last_name, team, status, campaigner_id
+	 FROM coc_summary_tables.campaigner_list) campaign ON mails.id = campaign.campaigner_id 
+
+-- this join pulls in the core page and matched the page id to the associated action 
+LEFT JOIN 
+	(SELECT id
+   FROM coc_ak.core_page) page ON page.id = actions.page_id
+   
+-- this join pulls orders table and users that have provided a donation 
+LEFT JOIN 
+	(SELECT id, user_id, action_id, created_at, status, total
+	 FROM coc_ak.core_order) ord ON ord.user_id = users.id
+   
+-- this join connects a transaction with an order, confirming a donation type 
+LEFT JOIN 
+	coc_ak.core_transaction trans ON trans.order_id = ord.id 
+  
+-- this join pulls in the number or recurring donations by the amount and id 
+LEFT JOIN 
+	(SELECT order_id, id, status, amount, account
+   FROM coc_ak.core_orderrecurring) recur ON recur.order_id = trans.order_id
+   
+-- this join pulls in the mailing subject line 
+LEFT JOIN 
+	(SELECT id as mailing_id, "text"
+	 FROM coc_ak.core_mailingsubject) subject on subject.mailing_id = mails.id
+ 
+-- this join pulls in the mailnig id's for emails that were opened 
+LEFT JOIN 
+	(SELECT core_open.mailing_id, core_open.id 
+   FROM coc_ak.core_open 
+   -- need to remove the GETDATE(); use to limit the query time 
+   WHERE core_open.created_at > GETDATE() - 30 )opene ON opene.mailing_id = mails.id
+
+-- filters for order statuses that are completed, successful transactions, and amounts greater than zero 
+WHERE ord.status = 'completed' AND
+	trans.status = 'completed' AND
+	trans.type IN ('sale', 'credit') AND
+  trans.amount > 0 AND
+  trans.success = 1 AND
+  fundraiser_week BETWEEN '2020-01-01' AND '2020-12-31'
+	
+GROUP BY fundraiser_week, mails.id, emails_sent, trans.amount, users.created_at, recur.status, recur.account, users.id, users.email, ord.user_id,campaign.first_name,campaign.last_name, campaign.team, longitude, latitude, subject.text, users.id, users.city, users.state
+;
+
+-- provides data table access to COC group 
+
+-- GRANT USAGE on table coc_summary_tables.ak_summary_table TO coc;
