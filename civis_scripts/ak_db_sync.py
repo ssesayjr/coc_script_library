@@ -298,7 +298,6 @@ def main():
 
                 dbsync.table_sync_full(source_table = tbl['source'],
                                    destination_table = tbl['destination'],
-                                   distinct_check=distinct_check,
                                    if_exists=tbl['if_exists'],
                                    temp_bucket_region=temp_bucket_region,
                                    alter_table=True,
