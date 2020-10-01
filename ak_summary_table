@@ -66,9 +66,9 @@ SELECT
 
 -- calculates wethere an email is a test or an actual deployment 
    , CASE 
-  		WHEN expected_send_count < 44,000 THEN 'test deployment' 
+  		WHEN expected_send_count < 44000 THEN 'test deployment' 
       ELSE 'actual deployment'
-    END AS recurring_donor_amount
+    END AS mail_deployment_type
 
 -- weekly mailing  information 
 	, mails.id mailing_id
