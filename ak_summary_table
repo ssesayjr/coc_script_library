@@ -64,6 +64,12 @@ SELECT
       ELSE 0
     END AS recurring_donor_amount 
 
+-- calculates wethere an email is a test or an actual deployment 
+   , CASE 
+  		WHEN expected_send_count < 44,000 THEN 'test deployment' 
+      ELSE 'actual deployment'
+    END AS recurring_donor_amount
+
 -- weekly mailing  information 
 	, mails.id mailing_id
   , subject.text subject_line
