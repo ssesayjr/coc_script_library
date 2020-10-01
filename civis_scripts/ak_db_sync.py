@@ -293,6 +293,7 @@ def main():
 
             # Default to distinct check being False
             distinct_check = tbl.get('distinct_check', 'false') == 'true'
+            logger.info(f"Syncing with distinct check: {distinct_check}")
 
             if tbl['type'] == 'full_refresh':
 
