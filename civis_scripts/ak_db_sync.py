@@ -291,6 +291,10 @@ def main():
         if destination_db.table_exists(tbl['source']):
             logger.info(f"Running {tbl['type']} on {tbl['source']} to {tbl['destination']}...")
 
+            # Default to distinct check being False
+            distinct_check = tbl.get('distinct_check', 'false') == 'true'
+            logger.info(f"Syncing with distinct check: {distinct_check}")
+
             if tbl['type'] == 'full_refresh':
 
                 dbsync.table_sync_full(source_table = tbl['source'],
@@ -303,9 +307,6 @@ def main():
             
             elif tbl['type'] == 'append':
 
-                # Default to distinct check being True
-                distinct_check = tbl.get('distinct_check', 'true') == 'true'
-
                 dbsync.table_sync_incremental(source_table = tbl['source'],
                                    destination_table = tbl['destination'],
                                    primary_key=tbl.get('primary_key') or tbl['distkey'],
@@ -316,9 +317,6 @@ def main():
                                    sortkey=tbl['sortkey'])
 
             elif tbl['type'] == 'incremental':
-
-                # Default to distinct check being True
-                distinct_check = tbl.get('distinct_check', 'true') == 'true'
 
                 dbsync.table_sync_incremental_upsert(source_table = tbl['source'],
                                    destination_table = tbl['destination'],
