@@ -236,7 +236,7 @@ def main():
 
     # Instantiate class for TMC Redshift
     setup_environment()
-    rs = Redshift()
+    rs = Redshift(timeout=50)
 
     # Parse Civis Parameters from environment variables to useful objects
     temp_bucket_region = os.environ['AWS_REGION'] if os.environ['AWS_REGION']!='Default' else None
