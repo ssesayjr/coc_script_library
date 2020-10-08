@@ -228,7 +228,7 @@ def table_sync_incremental_upsert(self, source_table, destination_table, primary
             # Update the counter
             copied_rows += row_count
 
-    self._row_count_verify(source_tbl, destination_tbl)
+    # self._row_count_verify(source_tbl, destination_tbl)
 
     logger.info(f'{source_table} synced to {destination_table}.')
 
