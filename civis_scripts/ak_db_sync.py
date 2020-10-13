@@ -172,6 +172,7 @@ def table_sync_incremental_upsert(self, source_table, destination_table, primary
         f"SELECT MAX({updated_col}) FROM coc_ak.core_action_dbs"
     ).first
     logger.info(f"destination max updated: {str(dest_max_updated)}")
+    logger.info(f"SELECT MAX({updated_col}) FROM {source_table}")
     source_max_updated = self.source_db.query(
         f"SELECT MAX({updated_col}) FROM {source_table}"
     ).first
