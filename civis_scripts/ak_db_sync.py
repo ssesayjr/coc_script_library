@@ -4,6 +4,7 @@ import logging
 import ast
 import time
 import psycopg2
+import mysql.connector as mysql
 from parsons import Redshift, MySQL, Postgres, DBSync, S3
 from contextlib import contextmanager
 from mysql.connector.cursor_cext import MySQLInterfaceError
