@@ -218,6 +218,7 @@ def table_sync_incremental_upsert(self, source_table, destination_table, primary
             # Try a normal upsert, but if it fails, try witohut vacuuming
             try:
                 # Copy the chunk
+                logger.info("Attempting to upsert the chunk")
                 self.dest_db.upsert(rows, destination_table, primary_key, **kwargs)
             except (Exception, psycopg2.DatabaseError) as error:
                 if 'VACUUM is running' in str(error):
