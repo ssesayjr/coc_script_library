@@ -16,6 +16,7 @@ logger.setLevel('INFO')
 
 TMC_CIVIS_DATABASE = 815
 TMC_CIVIS_DATABASE_NAME = 'TMC'
+CHUNK_SIZE = os.environ['CHUNK_SIZE']
 
 RESERVED_WORDS = ['AES128', 'AES256', 'ALL', 'ALLOWOVERWRITE', 'ANALYSE', 'ANALYZE', 'AND', 'ANY',
                   'ARRAY', 'AS', 'ASC', 'AUTHORIZATION', 'BACKUP', 'BETWEEN', 'BINARY',
@@ -281,9 +282,9 @@ def main():
     DBSync.table_sync_incremental_upsert = table_sync_incremental_upsert
 
     if reverse:
-        dbsync = DBSync(destination_db, rs)
+        dbsync = DBSync(destination_db, rs, chunk_size=CHUNK_SIZE)
     else:
-        dbsync = DBSync(rs, destination_db)
+        dbsync = DBSync(rs, destination_db, chunk_size=CHUNK_SIZE)
 
     for tbl in table_config:
 
