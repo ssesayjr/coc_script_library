@@ -5,6 +5,9 @@ import ast
 import time
 import psycopg2
 from parsons import Redshift, MySQL, Postgres, DBSync, S3
+from contextlib import contextmanager
+from mysql.connector.cursor_cext import MySQLInterfaceError
+from parsons.utilities import check_env
 
 # Define the default logging config for Canales scripts
 logger = logging.getLogger(__name__)
@@ -97,6 +100,39 @@ def setup_environment(redshift_parameter="REDSHIFT", aws_parameter="AWS"):
     set_env_var('AWS_ACCESS_KEY_ID', env.get(f'{aws_parameter}_USERNAME'))
     set_env_var('AWS_SECRET_ACCESS_KEY', env.get(f'{aws_parameter}_PASSWORD'))
 
+def mysql_init(self, host=None, username=None, password=None, db=None, port=3306, timeout=600):
+    # Hack MySQL class to force timeout argument
+
+    self.username = check_env.check('MYSQL_USERNAME', username)
+    self.password = check_env.check('MYSQL_PASSWORD', password)
+    self.host = check_env.check('MYSQL_HOST', host)
+    self.db = check_env.check('MYSQL_DB', db)
+    self.port = port or os.environ.get('MYSQL_PORT')
+    self.timeout = os.environ.get('MYSQL_TIMEOUT') or timeout
+
+@contextmanager
+def mysql_connection(self):
+    # Hack MySQL class to pass timeout argument
+
+    # Create a mysql connection and cursor
+    connection = mysql.connect(host=self.host,
+                               user=self.username,
+                               passwd=self.password,
+                               database=self.db,
+                               port=self.port,
+                               connect_timeout=self.timeout
+                              )
+
+    try:
+        yield connection
+    except mysql.Error:
+        connection.rollback()
+        raise
+    else:
+        connection.commit()
+    finally:
+        connection.close()
+
 def get_new_rows(table, db, primary_key, cutoff_value, offset=0, chunk_size=None):
         """
         Get rows that have a greater primary key value than the one
@@ -172,10 +208,16 @@ def table_sync_incremental_upsert(self, source_table, destination_table, primary
         f"SELECT MAX({updated_col}) FROM coc_ak.core_action_dbs"
     ).first
     logger.info(f"destination max updated: {str(dest_max_updated)}")
-    logger.info(f"SELECT MAX({updated_col}) FROM {source_table}")
-    source_max_updated = self.source_db.query(
-        f"SELECT MAX({updated_col}) FROM {source_table}"
-    ).first
+    try:
+        source_max_updated = self.source_db.query(
+            f"SELECT MAX({updated_col}) FROM {source_table}"
+        ).first
+    except MySQLInterfaceError as e:
+        if str(e) == 'MySQL server has gone away':
+            logger.info(f"Source max updated timed out after {db.timeout} seconds. Elsa wants us to...")
+            return None
+        else:
+            raise e
     logger.info(f"source max updated: {str(source_max_updated)}")
 
     # Check for a mismatch in row counts; if dest_max_pk is None, or destination is empty
@@ -194,7 +236,14 @@ def table_sync_incremental_upsert(self, source_table, destination_table, primary
     else:
         # Get count of rows to be copied.
         if dest_max_updated is not None:
-            new_row_count = source_tbl.get_new_rows_count(updated_col, str(dest_max_updated))
+            try:
+                new_row_count = source_tbl.get_new_rows_count(updated_col, str(dest_max_updated))
+            except MySQLInterfaceError as e:
+                if str(e) == 'MySQL server has gone away':
+                    logger.info(f"Get new row count timed out after {db.timeout} seconds. Elsa wants us to...")
+                    return None
+                else:
+                    raise e
         else:
             new_row_count = source_tbl.num_rows
 
@@ -205,10 +254,18 @@ def table_sync_incremental_upsert(self, source_table, destination_table, primary
         while copied_rows < new_row_count:
             # Get a chunk
             logger.info(f"OFFSET: {copied_rows}")
-            rows = get_new_rows(source_tbl.table, self.source_db, primary_key=updated_col,
-                                           cutoff_value=str(dest_max_updated),
-                                           offset=copied_rows,
-                                           chunk_size=self.chunk_size)
+            try: 
+                rows = get_new_rows(source_tbl.table, self.source_db,
+                                    primary_key=updated_col,
+                                    cutoff_value=str(dest_max_updated),
+                                    offset=copied_rows,
+                                    chunk_size=self.chunk_size)
+            except MySQLInterfaceError as e:
+                if str(e) == 'MySQL server has gone away':
+                    logger.info(f"Get new row data timed out after {db.timeout} seconds. Elsa wants us to...")
+                    return None
+                else:
+                    raise e
 
             row_count = rows.num_rows if rows else 0
             if row_count == 0:
@@ -266,11 +323,17 @@ def main():
             aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'])
                                 
     elif os.environ['DB_TYPE'].lower() == 'mysql':
+
+        # Deploy the hacks!
+        MySQL.__init__ = mysql_init
+        MySQL.connection = mysql_connection
+
         destination_db = MySQL(
             host=os.environ['DESTINATION_HOST'],
             username=os.environ['DESTINATION_CREDENTIAL_USERNAME'],
             password=os.environ['DESTINATION_CREDENTIAL_PASSWORD'],
-            db=os.environ['DESTINATION_DB'])
+            db=os.environ['DESTINATION_DB'],
+            timeout=1800)
                                 
     elif os.environ['DB_TYPE'] == 'postgres':
         destination_db = Postgres(username=os.environ['DESTINATION_CREDENTIAL_USERNAME'],
