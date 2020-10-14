@@ -215,7 +215,7 @@ def table_sync_incremental_upsert(self, source_table, destination_table, primary
         ).first
     except MySQLInterfaceError as e:
         if str(e) == 'MySQL server has gone away':
-            logger.info(f"Source max updated timed out after {source_db.timeout} seconds. Elsa wants us to...")
+            logger.info(f"Source max updated timed out after {self.source_db.timeout} seconds. Elsa wants us to...")
             return None
         else:
             raise e
@@ -241,7 +241,7 @@ def table_sync_incremental_upsert(self, source_table, destination_table, primary
                 new_row_count = source_tbl.get_new_rows_count(updated_col, str(dest_max_updated))
             except MySQLInterfaceError as e:
                 if str(e) == 'MySQL server has gone away':
-                    logger.info(f"Get new row count timed out after {source_db.timeout} seconds. Elsa wants us to...")
+                    logger.info(f"Get new row count timed out after {self.source_db.timeout} seconds. Elsa wants us to...")
                     return None
                 else:
                     raise e
@@ -263,7 +263,7 @@ def table_sync_incremental_upsert(self, source_table, destination_table, primary
                                     chunk_size=self.chunk_size)
             except MySQLInterfaceError as e:
                 if str(e) == 'MySQL server has gone away':
-                    logger.info(f"Get new row data timed out after {source_db.timeout} seconds. Elsa wants us to...")
+                    logger.info(f"Get new row data timed out after {self.source_db.timeout} seconds. Elsa wants us to...")
                     return None
                 else:
                     raise e
