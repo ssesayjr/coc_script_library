@@ -160,6 +160,117 @@ def get_new_rows(table, db, primary_key, cutoff_value, offset=0, chunk_size=None
 
         return db.query(sql)
 
+def table_sync_incremental(self, source_table, destination_table, primary_key,
+                           distinct_check=True, **kwargs):
+    """
+    Incremental sync of table from a source database to a destination database
+    using an incremental primary key.
+
+    `Args:`
+        source_table: str
+            Full table path (e.g. ``my_schema.my_table``)
+        destination_table: str
+            Full table path (e.g. ``my_schema.my_table``)
+        if_exists: str
+            If destination table exists either ``drop`` or ``truncate``. Truncate is
+            useful when there are dependent views associated with the table.
+        primary_key: str
+            The name of the primary key. This must be the same for the source and
+            destination table.
+        distinct_check: bool
+            Check that the source table primary key is distinct prior to running the
+            sync. If it is not, an error will be raised.
+        **kwargs: args
+            Optional copy arguments for destination database.
+    `Returns:`
+        ``None``
+    """
+
+    # Create the table objects
+    source_tbl = self.source_db.table(source_table)
+    destination_tbl = self.dest_db.table(destination_table)
+
+    # Check that the destination table exists. If it does not, then run a
+    # full sync instead.
+    if not destination_tbl.exists:
+        self.table_sync_full(source_table, destination_table)
+
+    # If the source table contains 0 rows, do not attempt to copy the table.
+    # if source_tbl.num_rows == 0:
+    #     logger.info('Source table contains 0 rows')
+    #     return None
+
+    # Check that the source table primary key is distinct
+    if distinct_check and not source_tbl.distinct_primary_key(primary_key):
+        raise ValueError('{primary_key} is not distinct in source table.')
+
+    # Get the max source table and destination table primary key
+    try:
+        source_max_pk = source_tbl.max_primary_key(primary_key)
+    except MySQLInterfaceError as e:
+        if str(e) == 'MySQL server has gone away':
+            logger.info(f"Source max updated timed out after {self.source_db.timeout} seconds. Elsa wants us to...")
+            return None
+        else:
+            raise e
+    dest_max_pk = destination_tbl.max_primary_key(primary_key)
+
+    # Check for a mismatch in row counts; if dest_max_pk is None, or destination is empty
+    # and we don't have to worry about this check.
+    if dest_max_pk is not None and dest_max_pk > source_max_pk:
+        raise ValueError('Destination DB primary key greater than source DB primary key.')
+
+    # Do not copied if row counts are equal.
+    elif dest_max_pk == source_max_pk:
+        logger.info('Tables are in sync.')
+        return None
+
+    else:
+        # Get count of rows to be copied.
+        if dest_max_pk is not None:
+            try:
+                new_row_count = source_tbl.get_new_rows_count(primary_key, dest_max_pk)
+            except MySQLInterfaceError as e:
+                if str(e) == 'MySQL server has gone away':
+                    logger.info(f"Get new row count timed out after {self.source_db.timeout} seconds. Elsa wants us to...")
+                    return None
+                else:
+                    raise e
+        else:
+            new_row_count = source_tbl.num_rows
+
+        logger.info(f'Found {new_row_count} new rows in source table.')
+
+        copied_rows = 0
+        # Copy rows in chunks.
+        while True:
+            # Get a chunk
+            try:
+                rows = source_tbl.get_new_rows(primary_key=primary_key,
+                                               cutoff_value=dest_max_pk,
+                                               offset=copied_rows,
+                                               chunk_size=self.chunk_size)
+            except MySQLInterfaceError as e:
+                if str(e) == 'MySQL server has gone away':
+                    logger.info(f"Get new rows timed out after {self.source_db.timeout} seconds. Elsa wants us to...")
+                    return None
+                else:
+                    raise e
+
+            row_count = rows.num_rows if rows else 0
+            if row_count == 0:
+                break
+
+            # Copy the chunk
+            self.dest_db.copy(rows, destination_table, if_exists='append', **kwargs)
+
+            # Update the counter
+            copied_rows += row_count
+
+    self._row_count_verify(source_tbl, destination_tbl)
+
+    logger.info(f'{source_table} synced to {destination_table}.')
+
 def table_sync_incremental_upsert(self, source_table, destination_table, primary_key,
                                updated_col, distinct_check=True, **kwargs):
     """
@@ -346,8 +457,9 @@ def main():
     else:
         raise ValueError("Unsupported DB Type provided!")
 
-    # Extend DBSync class with Yotam's upsert version
+    # Extend DBSync class with Yotam's upsert and edits to append methods
     DBSync.table_sync_incremental_upsert = table_sync_incremental_upsert
+    DBSync.table_sync_incremental = table_sync_incremental
 
     if reverse:
         dbsync = DBSync(destination_db, rs, chunk_size=CHUNK_SIZE)
