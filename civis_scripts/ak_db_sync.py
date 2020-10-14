@@ -479,7 +479,7 @@ def main():
 
                 dbsync.table_sync_full(source_table = tbl['source'],
                                    destination_table = tbl['destination'],
-                                   if_exists=tbl['if_exists'],
+                                   if_exists=tbl.get('if_exists') or 'truncate',
                                    temp_bucket_region=temp_bucket_region,
                                    alter_table=True,
                                    distkey=tbl['distkey'],
