@@ -243,8 +243,9 @@ def table_sync_incremental(self, source_table, destination_table, primary_key,
 
         copied_rows = 0
         # Copy rows in chunks.
-        while True:
+        while copied_rows < new_row_count:
             # Get a chunk
+            logger.info(f"OFFSET: {copied_rows}")
             try:
                 rows = source_tbl.get_new_rows(primary_key=primary_key,
                                                cutoff_value=dest_max_pk,
@@ -267,7 +268,7 @@ def table_sync_incremental(self, source_table, destination_table, primary_key,
             # Update the counter
             copied_rows += row_count
 
-    self._row_count_verify(source_tbl, destination_tbl)
+    # self._row_count_verify(source_tbl, destination_tbl)
 
     logger.info(f'{source_table} synced to {destination_table}.')
 
