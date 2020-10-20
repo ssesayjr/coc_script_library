@@ -247,10 +247,12 @@ def table_sync_incremental(self, source_table, destination_table, primary_key,
             # Get a chunk
             logger.info(f"OFFSET: {copied_rows}")
             try:
-                rows = source_tbl.get_new_rows(primary_key=primary_key,
-                                               cutoff_value=dest_max_pk,
-                                               offset=copied_rows,
-                                               chunk_size=self.chunk_size)
+                rows = get_new_rows(source_tbl.table, self.source_db,
+                                    primary_key=primary_key,
+                                    cutoff_value=dest_max_pk,
+                                    offset=copied_rows,
+                                    chunk_size=self.chunk_size)
+
             except MySQLInterfaceError as e:
                 if str(e) == 'MySQL server has gone away':
                     logger.info(f"Get new rows timed out after {self.source_db.timeout} seconds. Elsa wants us to...")
