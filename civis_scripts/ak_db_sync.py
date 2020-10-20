@@ -320,7 +320,7 @@ def table_sync_incremental_upsert(self, source_table, destination_table, primary
 
     # Get the max source table and destination table primary key
     dest_max_updated = self.dest_db.query(
-        f"SELECT MAX({updated_col}) FROM coc_ak.core_action_dbs"
+        f"SELECT MAX({updated_col}) FROM {destination_table}"
     ).first
     logger.info(f"destination max updated: {str(dest_max_updated)}")
     try:
