@@ -322,7 +322,9 @@ def table_sync_incremental_upsert(self, source_table, destination_table, primary
     dest_max_updated = self.dest_db.query(
         f"SELECT MAX({updated_col}) FROM {destination_table}"
     ).first
-    logger.info(f"destination max updated: {str(dest_max_updated)}")
+    logger.info(f"destination max updated: {str(dest_max_updated)}, type: {type(dest_max_updated)}")
+    if isinstance(dest_max_updated, str):
+        dest_max_updated = datetime.strptime(dest_max_updated[:19], '%Y-%m-%d %H:%M:%S')
     try:
         source_max_updated = self.source_db.query(
             f"SELECT MAX({updated_col}) FROM {source_table}"
