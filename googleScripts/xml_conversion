@@ -1,0 +1,38 @@
+function unzipFile() {
+var folder = DriveApp.getFoldersByName("DMARC Attachments").next();
+var files = folder.getFiles(); 
+var unzipFolder = DriveApp.getFoldersByName("unzipped_Files").next();
+var jsonFolder = DriveApp.getFoldersByName("json_Files").next();
+
+
+
+//Specified file type 
+var files_ZIP = folder.getFilesByType(MimeType.ZIP);
+var zipblob_v2 = files_ZIP.next().getBlob();
+var unzipblob_v2 = Utilities.unzip(zipblob_v2);
+var text_File = unzipblob_v2[0].getAs('text/txt');
+var convertedFolder = DriveApp.getFoldersByName("converted_Data").next();
+ 
+
+
+var document = XmlService.parse(unzipblob_v2[0].getDataAsString());
+
+
+var newUnzipFile = unzipFolder.createFile(unzipblob_v2[0]);
+
+var result = {};
+var root = document.getRootElement();
+var root_test = document.getRootElement();
+
+result[root.getName()] = elementToJSON(root);
+
+var newJSONFile = jsonFolder.createFile(Utilities.newBlob(JSON.stringify(result)).setName('test.json'));
+var newTextFile = convertedFolder.createFile(Utilities.newBlob(unzipblob_v2[0].getDataAsString()).setName('test.text'));
+
+
+
+Logger.log(root_test);
+
+}
+
+
