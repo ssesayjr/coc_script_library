@@ -6,7 +6,6 @@ import sys
 import json
 
 from parsons import Table, S3, Redshift, utilities, logger 
-import xml.etree.ElementTree as ET
 import numpy as np
 
 
