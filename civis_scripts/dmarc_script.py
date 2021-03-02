@@ -214,7 +214,7 @@ def main():
                 
              #TODO: Table undeifned, may need to import from parsons?
             final_table = file_To_Table(file)
-            table_name = schema.coc_dmarc
+            table_name = f"schema.{x.replace('.xlm', '')}"
             try:
                 final_table.to_redshift(user_table, if_exists='truncate')
             except Exception:
