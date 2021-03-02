@@ -87,28 +87,10 @@ def main():
 
     timestamp = datetime.datetime.now().strftime("%Y%m%d") #timestamp used in log table 
 
+    user_table = f'{mem_code}_dmarc.users_{org_type}'
 
-    def setup_environment(redshift_parameter="REDSHIFT", aws_parameter="AWS"):
-        """
-        Sets up environment variables needed for various common services used by our scripts.
-        Call this at the beginning of your script.
-        `Args:`
-            redshift_parameter: str
-                Name of the Civis script parameter holding Redshift credentials. This parameter
-                should be of type "database (2 dropdown)" in Civis.
-            aws_parameter: str
-            Name of the Civis script parameter holding AWS credentials.
-            copper_parameter: str
-            Name of the Copper script parameter holding Copper user email and API key
-            google_sheets_parameter: str
-                Name of the Google Sheets script parameter holding a base64-encoded Google
-                credentials dict
-        """
-
-        user_table = f'{mem_code}_dmarc.users_{org_type}'
-
-        if not rs.table_exists(user_table): #if the table doesn't exist create it
-            rs.query(f"create table {user_table} (org_name varchar(1024), email varchar(1024), report_ID varchar(1024), date_range_begin timestamp,date_range_end timestamp, domain varchar(1024), adkim varchar(1024), aspf varchar(1024), p varchar(1024), sp timestamp, pct varchar(1024), source_ip varchar(1024), count varchar(1024), disposition varchar(1024), dkim varchar(1024), spf varchar(1024));")
+    if not rs.table_exists(user_table): #if the table doesn't exist create it
+       rs.query(f"create table {user_table} (org_name varchar(1024), email varchar(1024), report_ID varchar(1024), date_range_begin timestamp,date_range_end timestamp, domain varchar(1024), adkim varchar(1024), aspf varchar(1024), p varchar(1024), sp timestamp, pct varchar(1024), source_ip varchar(1024), count varchar(1024), disposition varchar(1024), dkim varchar(1024), spf varchar(1024));")
 
             
     def file_To_Table(file):
