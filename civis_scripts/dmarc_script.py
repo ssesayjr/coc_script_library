@@ -81,7 +81,7 @@ def main():
     rs = Redshift()
     s3 = S3()
 
-    bucket = os.environ['BUCKET']
+    bucket = 'dmarc-files'
     keys = s3.list_keys(bucket)
     files = keys.keys()
 
