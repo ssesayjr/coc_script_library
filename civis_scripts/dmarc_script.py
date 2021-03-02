@@ -6,15 +6,15 @@ import sys
 import json
 
 from parsons import Table, S3, Redshift, utilities, logger 
+from canalespy import setup_environment #specifc to TMC
 import xml.etree.ElementTree as ET
 import numpy as np
 
 
 def main():
     #setup_environment()
-    for name, value in config_vars.items():    # sets variables if provided in this script
-        if value.strip() != "":
-            os.environ[name] = value
+    setup_environment()
+
 
     #set begin time to see how long the script takes to run
     start = time.time()
