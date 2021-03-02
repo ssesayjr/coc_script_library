@@ -27,7 +27,6 @@ def main():
     keys = s3.list_keys(bucket)
     files = keys.keys()
     
-    
 
     #grab keys from bucket
     #s3_key_infos = s3.list_keys(bucket, suffix='.xlm') 
@@ -57,17 +56,10 @@ def main():
                 credentials dict
         """
 
-        for name, value in config_vars.items():    # sets variables if provided in this script
-            if value.strip() != "":
-                os.environ[name] = value
-        
-
         user_table = f'{mem_code}_dmarc.users_{org_type}'
 
         if not rs.table_exists(user_table): #if the table doesn't exist create it
             rs.query(f"create table {user_table} (org_name varchar(1024), email varchar(1024), report_ID varchar(1024), date_range_begin timestamp,date_range_end timestamp, domain varchar(1024), adkim varchar(1024), aspf varchar(1024), p varchar(1024), sp timestamp, pct varchar(1024), source_ip varchar(1024), count varchar(1024), disposition varchar(1024), dkim varchar(1024), spf varchar(1024));")
-            logger.info(f"Creating {user_table}...")
-        else: logger.info(f"{user_table} exists")
 
             
     def file_To_Table(file):
@@ -179,13 +171,10 @@ def main():
         parsons_table = Table.from_dataframe(df)
         return parsons_table
     
-
     
     if len(keys) == 0:
-        logger.info("No files to sync today!")
         print ("No files to sync today!")
     else:
-        logger.info(f"Pulling {str(len(files))} files down from s3...")
         for x in files:
             from parsons import Table
             file = s3.get_file(bucket, x)
@@ -194,7 +183,7 @@ def main():
                 
              #TODO: Table undeifned, may need to import from parsons?
             final_table = file_To_Table(file)
-            table_name = f"schema.{x.replace('.xlm', '')}"
+            table_name = f"schema.{S3_TEMP_BUCKET}"
             try:
                 final_table.to_redshift(table_name, if_exists='truncate')
             except Exception:
