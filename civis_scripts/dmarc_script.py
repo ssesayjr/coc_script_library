@@ -52,7 +52,7 @@ def setup_environment(redshift_parameter="REDSHIFT", aws_parameter="AWS"):
 
     # Civis setup
 
-    set_env_var('CIVIS_DATABASE', str(TMC_CIVIS_DATABASE))
+    set_env_var('CIVIS_DATABASE', '815')
 
     # Redshift setup
 
