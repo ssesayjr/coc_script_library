@@ -87,7 +87,7 @@ def main():
 
     timestamp = datetime.datetime.now().strftime("%Y%m%d") #timestamp used in log table 
 
-    user_table = f'coc_dmarc.users_{org_type}'
+    user_table = 'coc_dmarc.users_c4'
 
     if not rs.table_exists(user_table): #if the table doesn't exist create it
        rs.query(f"create table {user_table} (org_name varchar(1024), email varchar(1024), report_ID varchar(1024), date_range_begin timestamp,date_range_end timestamp, domain varchar(1024), adkim varchar(1024), aspf varchar(1024), p varchar(1024), sp timestamp, pct varchar(1024), source_ip varchar(1024), count varchar(1024), disposition varchar(1024), dkim varchar(1024), spf varchar(1024));")
@@ -214,11 +214,11 @@ def main():
                 
              #TODO: Table undeifned, may need to import from parsons?
             final_table = file_To_Table(file)
-            table_name = f"schema.{S3_TEMP_BUCKET}"
+            table_name = schema.coc_dmarc
             try:
-                final_table.to_redshift(table_name, if_exists='truncate')
+                final_table.to_redshift(user_table, if_exists='truncate')
             except Exception:
-                final_table.to_redshift(table_name, if_exists='drop')
+                final_table.to_redshift(user_table, if_exists='drop')
             utilities.files.close_temp_file(file)
 
     
