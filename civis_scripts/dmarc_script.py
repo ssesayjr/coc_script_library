@@ -6,9 +6,68 @@ import sys
 import json
 
 from parsons import Table, S3, Redshift, utilities, logger 
-from canalespy import setup_environment #specifc to TMC
 import xml.etree.ElementTree as ET
 import numpy as np
+
+
+def set_env_var(name, value, overwrite=False):
+    """
+    Set an environment variable to a value.
+    `Args:`
+        name: str
+            Name of the env var
+        value: str
+            New value for the env var
+        overwrite: bool
+            Whether to set the env var even if it already exists
+    """
+    # Do nothing if we don't have a value
+    if not value:
+        return
+
+    # Do nothing if env var already exists
+    if os.environ.get(name) and not overwrite:
+        return
+
+    os.environ[name] = value
+
+def setup_environment(redshift_parameter="REDSHIFT", aws_parameter="AWS"):
+    """
+    Sets up environment variables needed for various common services used by our scripts.
+    Call this at the beginning of your script.
+    `Args:`
+        redshift_parameter: str
+            Name of the Civis script parameter holding Redshift credentials. This parameter
+            should be of type "database (2 dropdown)" in Civis.
+        aws_parameter: str
+            Name of the Civis script parameter holding AWS credentials.
+        copper_parameter: str
+            Name of the Copper script parameter holding Copper user email and API key
+        google_sheets_parameter: str
+            Name of the Google Sheets script parameter holding a base64-encoded Google
+            credentials dict
+    """
+
+    env = os.environ
+
+    # Civis setup
+
+    set_env_var('CIVIS_DATABASE', str(TMC_CIVIS_DATABASE))
+
+    # Redshift setup
+
+    set_env_var('REDSHIFT_PORT', '5432')
+    set_env_var('REDSHIFT_DB', 'dev')
+    set_env_var('REDSHIFT_HOST', env.get(f'{redshift_parameter}_HOST'))
+    set_env_var('REDSHIFT_USERNAME', env.get(f'{redshift_parameter}_CREDENTIAL_USERNAME'))
+    set_env_var('REDSHIFT_PASSWORD', env.get(f'{redshift_parameter}_CREDENTIAL_PASSWORD'))
+
+    # AWS setup
+
+    set_env_var('S3_TEMP_BUCKET', 'parsons-tmc')
+    set_env_var('AWS_ACCESS_KEY_ID', env.get(f'{aws_parameter}_USERNAME'))
+    set_env_var('AWS_SECRET_ACCESS_KEY', env.get(f'{aws_parameter}_PASSWORD'))
+
 
 
 def main():
@@ -26,15 +85,6 @@ def main():
     bucket = os.environ['BUCKET']
     keys = s3.list_keys(bucket)
     files = keys.keys()
-    
-
-    #grab keys from bucket
-    #s3_key_infos = s3.list_keys(bucket, suffix='.xlm') 
-
-    #s3_keys_tuples = sorted(s3_key_infos.items(), reverse=True, key=lambda dictitem: dictitem[1]['LastModified'])
-    #s3_keys = [item[0] for item in s3_keys_tuples]
-    #last_modified = s3_keys[0] #grabs only the key of the last modified file
-
 
     timestamp = datetime.datetime.now().strftime("%Y%m%d") #timestamp used in log table 
 
