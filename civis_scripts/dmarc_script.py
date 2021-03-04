@@ -63,7 +63,7 @@ def setup_environment(redshift_parameter="REDSHIFT", aws_parameter="AWS"):
 
     # AWS setup
 
-    set_env_var('S3_TEMP_BUCKET', 'parsons-tmc')
+    set_env_var('S3_TEMP_BUCKET', 'coc-temp')
     set_env_var('AWS_ACCESS_KEY_ID', env.get(f'{aws_parameter}_USERNAME'))
     set_env_var('AWS_SECRET_ACCESS_KEY', env.get(f'{aws_parameter}_PASSWORD'))
 
