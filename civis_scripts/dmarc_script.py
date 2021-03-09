@@ -66,7 +66,7 @@ def setup_environment(redshift_parameter="REDSHIFT", aws_parameter="AWS"):
     set_env_var('S3_TEMP_BUCKET', 'coc-temp')
     set_env_var('AWS_ACCESS_KEY_ID', env.get(f'{aws_parameter}_USERNAME'))
     set_env_var('AWS_SECRET_ACCESS_KEY', env.get(f'{aws_parameter}_PASSWORD'))
-    set_env_var('AWS_REGION', 'US West (Oregon) us-west-2')
+    #set_env_var('AWS_REGION', 'US West (Oregon) us-west-2')
 
 
 def main():
@@ -216,9 +216,14 @@ def main():
             final_table = file_To_Table(file)
             table_name = f"schema.{x.replace('.xlm', '')}"
             try:
-                final_table.to_redshift(user_table, if_exists='truncate')
+                #final_table.to_redshift(user_table, if_exists='truncate')
+                rs.copy(final_table,user_table,temp_bucket_region= 'us-west-2',if_exists='truncate')
             except Exception:
-                final_table.to_redshift(user_table, if_exists='drop')
+                rs.copy(final_table,user_table,temp_bucket_region= 'us-west-2',if_exists='drop')
+
+                #final_table.to_redshift(user_table, if_exists='drop')
+            
+            
             utilities.files.close_temp_file(file)
 
     
