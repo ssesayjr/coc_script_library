@@ -66,7 +66,7 @@ def setup_environment(redshift_parameter="REDSHIFT", aws_parameter="AWS"):
     set_env_var('S3_TEMP_BUCKET', 'coc-temp')
     set_env_var('AWS_ACCESS_KEY_ID', env.get(f'{aws_parameter}_USERNAME'))
     set_env_var('AWS_SECRET_ACCESS_KEY', env.get(f'{aws_parameter}_PASSWORD'))
-    set_env_var('AWS_REGION', 'us-west-2')
+    set_env_var('AWS_REGION', 'US West (Oregon) us-west-2')
 
 
 def main():
@@ -81,8 +81,8 @@ def main():
     rs = Redshift()
     s3 = S3()
 
-    bucket = 'dmarc-files'
-    keys = s3.list_keys(bucket)
+    coc_bucket = 'dmarc-files'
+    keys = s3.list_keys(bucket = coc_bucket)
     files = keys.keys()
 
     timestamp = datetime.datetime.now().strftime("%Y%m%d") #timestamp used in log table 
