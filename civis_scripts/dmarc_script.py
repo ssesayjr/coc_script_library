@@ -82,7 +82,7 @@ def main():
     s3 = S3()
 
     coc_bucket = 'dmarc-files'
-    keys = s3.list_keys(bucket = coc_bucket)
+    keys = s3.list_keys(coc_bucket)
     files = keys.keys()
 
     timestamp = datetime.datetime.now().strftime("%Y%m%d") #timestamp used in log table 
