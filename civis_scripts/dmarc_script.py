@@ -208,7 +208,7 @@ def main():
     else:
         for x in files:
             from parsons import Table
-            file = s3.get_file(bucket, x)
+            file = s3.get_file(coc_bucket, x)
             file = Table.from_csv(file)
             
                 
