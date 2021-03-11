@@ -1,18 +1,16 @@
 select count(*) as "user_count"
 
 from core_user 
+
 join core_action on core_user.id = core_action.user_id
 join summary_user on summary_user.user_id = core_user.id 
 join core_page on core_page.id = core_action.page_id
 join core_subscription on core_subscription.user_id = core_user.id
 
-
-
 where core_action.status != 'spam'
 and summary_user.last_action between '01-01-2021' and now()
 and core_page.type not in ('Import')
 and core_subscription.list_id not in ( 16,17,18,35 )
-
     
 and core_user.email NOT REGEXP ".con$"| "ymail.com$" | ".con$" |"yahoo.con$"| '[&=+<>]' |'^[a-zA-z]'
 
@@ -26,5 +24,3 @@ and core_user.created_at between {last_run} and {now}
 
 {% endif %}
 ;
-
-
