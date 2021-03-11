@@ -210,11 +210,10 @@ def main():
             from parsons import Table
             file = s3.get_file(coc_bucket, x)
             file = Table.from_csv(file)
-            
+            table_name=
                 
              #TODO: Table undeifned, may need to import from parsons?
             final_table = file_To_Table(file)
-            table_name = f"schema.{x.replace('.xlm', '')}"
             try:
                 #final_table.to_redshift(user_table, if_exists='truncate')
                 rs.copy(final_table,user_table,truncatecolumns=True,temp_bucket_region= 'us-west-2',if_exists='truncate')
@@ -223,7 +222,8 @@ def main():
 
                 #final_table.to_redshift(user_table, if_exists='drop')
             
-            
+            logger.info("This {} is completed!".format(x))
+
             utilities.files.close_temp_file(file)
 
     
