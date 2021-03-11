@@ -1,0 +1,16 @@
+select distinct (core_subscription.user_id)
+
+from core_subscription 
+
+join core_user on (core_subscription.user_id = core_user.id)
+join core_action on (core_user.id = core_action.user_id) 
+
+where 
+  ((select count(*) 
+	from core_action 
+	where core_action.user_id = core_user.id 
+  	and core_action.source not in ('import') 
+	and core_action.status in ('complete')
+  	and core_action.mailing_id is not null
+	and core_action.updated_at > date_sub(now(), interval {{months}} month)) 
+   		> 0) 
