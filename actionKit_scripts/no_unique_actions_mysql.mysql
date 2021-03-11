@@ -1,3 +1,5 @@
+/*Code is written in mysql and identifies users that are inactive within 9 months*/
+
 select distinct (core_subscription.user_id)
 
 from core_subscription 
