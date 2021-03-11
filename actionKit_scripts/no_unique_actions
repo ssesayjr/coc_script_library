@@ -1,5 +1,6 @@
 -- Returns the number of users that have not taken an action within ( months 
 -- Also eliminates users that were not imported into ActionKit and the subscription status is subscribed 
+-- script ran in SQL, NOT MySQL
 
 select distinct core_subscription.user_id from coc_ak.core_subscription 
 
