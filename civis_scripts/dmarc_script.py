@@ -217,9 +217,9 @@ def main():
             table_name = f"schema.{x.replace('.xlm', '')}"
             try:
                 #final_table.to_redshift(user_table, if_exists='truncate')
-                rs.copy(final_table,user_table,temp_bucket_region= 'us-west-2',if_exists='truncate')
+                rs.copy(final_table,user_table,truncatecolumns=True,temp_bucket_region= 'us-west-2',if_exists='truncate')
             except Exception:
-                rs.copy(final_table,user_table,temp_bucket_region= 'us-west-2',if_exists='drop')
+                rs.copy(final_table,user_table,truncatecolumns=True,temp_bucket_region= 'us-west-2',if_exists='drop')
 
                 #final_table.to_redshift(user_table, if_exists='drop')
             
