@@ -94,6 +94,25 @@ def main():
 
             
     def file_To_Table(file):
+        
+        org_substring = 'NA'
+        email_substring = 'NA'
+        id_substring = 'NA'
+        begin_substring = 'NA'
+        adkim_substring = 'NA'
+        end_substring = 'NA'
+        domain_substring = 'NA'
+        p_substring = 'NA'
+        aspf_substring = 'NA'
+        sp_substring = 'NA'
+        pct_substring = 'NA'
+        ip_substring = 'NA'
+        dkim_substring = 'NA'
+        disposition_substring = 'NA'
+        result_substring = 'NA'
+        spf_substring = 'NA'
+
+        
       
         for column in file.data:
             column_data = str(column)
@@ -103,7 +122,6 @@ def main():
                 end = column_data.find('</org_name>')
                 org_substring = column_data[start:end]
                 
-            else: org_substring = 'NA'
                     
 
             if '<email>' in column_data:
@@ -111,28 +129,24 @@ def main():
                 end = column_data.find('</email>')
                 email_substring = column_data[start:end]
                 
-            else: email_substring = 'NA'
 
             if '<report_id>' in column_data:
                 start = column_data.find('<report_id>') + len('<report_id>')
                 end = column_data.find('</report_id>')
                 id_substring = column_data[start:end]
                 
-            else: id_substring = 'NA'
       
             if '<begin>' in column_data:
                 start = column_data.find('<begin>') + len('<begin>')
                 end = column_data.find('</begin>')
                 begin_substring = column_data[start:end]
                 
-            else: begin_substring = 'NA'
                 
             if '<end>' in column_data:
                 start = column_data.find('<end>') + len('<end>')
                 end = column_data.find('</end>')
                 end_substring = column_data[start:end]
             
-            else: end_substring = 'NA'
                 
                 
             if '<domain>' in column_data:
@@ -140,7 +154,6 @@ def main():
                 end = column_data.find('</domain>')
                 domain_substring = column_data[start:end] 
                 
-            else: domain_substring = 'NA'
     
     
             if '<adkim>' in column_data:
@@ -148,7 +161,6 @@ def main():
                 end = column_data.find('</adkim>')
                 adkim_substring = column_data[start:end] 
                 
-            else: adkim_substring = 'NA'
     
     
             if '<aspf>' in column_data:
@@ -156,14 +168,12 @@ def main():
                 end = column_data.find('</aspf>')
                 aspf_substring = column_data[start:end]  
                 
-            else: aspf_substring = 'NA'
     
             if '<p>' in column_data:
                 start = column_data.find('<p>') + len('<p>')
                 end = column_data.find('</p>')
                 p_substring = column_data[start:end]  
                 
-            else: p_substring = 'NA'
     
     
             if '<sp>' in column_data:
@@ -171,7 +181,6 @@ def main():
                 end = column_data.find('</sp>')
                 sp_substring = column_data[start:end]   
                 
-            else: sp_substring = 'NA'
     
     
             if '<pct>' in column_data:
@@ -179,7 +188,6 @@ def main():
                 end = column_data.find('</pct>')
                 pct_substring = column_data[start:end] 
                 
-            else: pct_substring = 'NA'
 
                 
             if '<source_ip>' in column_data:
@@ -187,7 +195,6 @@ def main():
                 end = column_data.find('</source_ip>')
                 ip_substring = column_data[start:end]    
                 
-            else: ip_substring = 'NA'
                 
     
             if '<dkim>' in column_data:
@@ -195,7 +202,6 @@ def main():
                 end = column_data.find('</dkim>')
                 dkim_substring = column_data[start:end]   
            
-            else: dkim_substring = 'NA'
                 
   
             if '<disposition>' in column_data:
@@ -203,22 +209,19 @@ def main():
                 end = column_data.find('</disposition>')
                 disposition_substring = column_data[start:end] 
                 
-            else: disposition_substring = 'NA'
 
             if '<spf>' in column_data:
                 start = column_data.find('<spf>') + len('<spf>')
                 end = column_data.find('</spf>')
                 spf_substring = column_data[start:end]    
                 
-            else: spf_substring = 'NA'
         
             if '<result>' in column_data:
                 start = column_data.find('<result>') + len('<result>')
                 end = column_data.find('</result>')
                 result_substring = column_data[start:end]    
                 
-            else: result_substring = 'NA'
-    
+
         df = pd.DataFrame({'orgname':[org_substring],
                         'email': [email_substring],
                         'reportid': [id_substring],
@@ -251,7 +254,7 @@ def main():
             final_table = file_To_Table(file)
             try:
                 #final_table.to_redshift(user_table, if_exists='truncate')
-                rs.copy(final_table,user_table,truncatecolumns=True,temp_bucket_region= 'us-west-2',if_exists='truncate')
+                rs.copy(final_table,user_table,truncatecolumns=True,temp_bucket_region= 'us-west-2',if_exists='append')
             except Exception:
                 rs.copy(final_table,user_table,truncatecolumns=True,temp_bucket_region= 'us-west-2',if_exists='drop')
 
