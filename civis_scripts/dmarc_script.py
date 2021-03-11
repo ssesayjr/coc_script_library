@@ -90,7 +90,7 @@ def main():
     user_table = 'coc_dmarc.dmarc_table'
 
     if not rs.table_exists(user_table): #if the table doesn't exist create it
-       rs.query(f"create table {user_table} (orgname varchar(2048), email varchar(2048), reportid varchar(2048), date_range_begin timestamp,date_range_end timestamp, domain varchar(1024), adkim varchar(1024), aspf varchar(1024), p varchar(1024), sp timestamp, pct varchar(1024), source_ip varchar(1024), disposition varchar(1024), dkim varchar(1024), spf varchar(1024));")
+       rs.query(f"create table {user_table} (orgname varchar(2048), email varchar(2048), reportid varchar(2048), date_range_begin varchar(2048),date_range_end varchar(2048), domain varchar(1024), adkim varchar(1024), aspf varchar(1024), p varchar(1024), sp varchar(2048), pct varchar(1024), source_ip varchar(1024), disposition varchar(1024), dkim varchar(1024), spf varchar(1024));")
 
             
     def file_To_Table(file):
