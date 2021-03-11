@@ -1,0 +1,19 @@
+select distinct (core_subscription.user_id)
+
+from core_subscription 
+
+join core_user on (core_subscription.user_id = core_user.id)
+join core_action on (core_user.id = core_action.user_id) 
+
+where 
+  ((select count(*) 
+	from core_action 
+	where core_action.user_id = core_user.id 
+  	and core_action.source not in ('import') 
+	and core_action.status in ('complete') 
+	and core_action.updated_at >= date_sub(now(), interval 9 month)) 
+   		<= 0) 
+
+and core_subscription.user_id not in (select core_open.user_id from core_open where core_open.created_at >= date_sub(now(), interval 9 month)) 
+
+and core_subscription.user_id not in (select core_order.user_id from core_order where core_order.created_at >= date_sub(now(), interval 9 month));
