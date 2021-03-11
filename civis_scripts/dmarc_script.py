@@ -252,17 +252,22 @@ def main():
                 
              #TODO: Table undeifned, may need to import from parsons?
             final_table = file_To_Table(file)
-            try:
-                #final_table.to_redshift(user_table, if_exists='truncate')
-                rs.copy(final_table,user_table,truncatecolumns=True,columntypes={'orgname': 'varchar(2048)', 'email': 'varchar(2048)', 'reportid': 'varchar(2048)', 'date_range_begin': 'varchar(2048)','date_range_end': 'varchar(2048)', 'domain': 'varchar(1024)', 'adkim': 'varchar(1024)', 'aspf': 'varchar(1024)', 'p': 'varchar(1024)', 'sp': 'varchar(2048)', 'pct': 'varchar(1024)', 'source_ip': 'varchar(1024)', 'disposition': 'varchar(1024)', 'dkim': 'varchar(1024)', 'spf': 'varchar(1024)'},temp_bucket_region= 'us-west-2',if_exists='append')
-            except Exception:
-                rs.copy(final_table,user_table,truncatecolumns=True,columntypes={'orgname': 'varchar(2048)', 'email': 'varchar(2048)', 'reportid': 'varchar(2048)', 'date_range_begin': 'varchar(2048)','date_range_end': 'varchar(2048)', 'domain': 'varchar(1024)', 'adkim': 'varchar(1024)', 'aspf': 'varchar(1024)', 'p': 'varchar(1024)', 'sp': 'varchar(2048)', 'pct': 'varchar(1024)', 'source_ip': 'varchar(1024)', 'disposition': 'varchar(1024)', 'dkim': 'varchar(1024)', 'spf': 'varchar(1024)'},temp_bucket_region= 'us-west-2',if_exists='drop')
-
-                #final_table.to_redshift(user_table, if_exists='drop')
             
-            logger.info("This {} is completed!".format(x))
+            
+            if final_table.first == 'NA':
+                continue
+            else:
+                try:
+                    #final_table.to_redshift(user_table, if_exists='truncate')
+                    rs.copy(final_table,user_table,truncatecolumns=True,columntypes={'orgname': 'varchar(2048)', 'email': 'varchar(2048)', 'reportid': 'varchar(2048)', 'date_range_begin': 'varchar(2048)','date_range_end': 'varchar(2048)', 'domain': 'varchar(1024)', 'adkim': 'varchar(1024)', 'aspf': 'varchar(1024)', 'p': 'varchar(1024)', 'sp': 'varchar(2048)', 'pct': 'varchar(1024)', 'source_ip': 'varchar(1024)', 'disposition': 'varchar(1024)', 'dkim': 'varchar(1024)', 'spf': 'varchar(1024)'},temp_bucket_region= 'us-west-2',if_exists='append')
+                except Exception:
+                    rs.copy(final_table,user_table,truncatecolumns=True,columntypes={'orgname': 'varchar(2048)', 'email': 'varchar(2048)', 'reportid': 'varchar(2048)', 'date_range_begin': 'varchar(2048)','date_range_end': 'varchar(2048)', 'domain': 'varchar(1024)', 'adkim': 'varchar(1024)', 'aspf': 'varchar(1024)', 'p': 'varchar(1024)', 'sp': 'varchar(2048)', 'pct': 'varchar(1024)', 'source_ip': 'varchar(1024)', 'disposition': 'varchar(1024)', 'dkim': 'varchar(1024)', 'spf': 'varchar(1024)'},temp_bucket_region= 'us-west-2',if_exists='drop')
 
-            utilities.files.close_temp_file(file)
+                    #final_table.to_redshift(user_table, if_exists='drop')
+            
+                logger.info("This {} is completed!".format(x))
+
+                utilities.files.close_temp_file(file)
 
     
     #final_table.to_redshift(user_table, specifycols=True, if_exists='truncate')
